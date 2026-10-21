@@ -59,6 +59,10 @@ py -3.13 -m venv .venv
 ## GitHub Actions
 
 `.github/workflows/ci.yml` 定义 `Chat CI` 工作流，在推送到 `main` 或向 `main` 发起 PR 时运行。
-`Tests and coverage` 任务使用 GitHub 的 Ubuntu runner，准备 Python 3.13，安装运行和测试依赖，再执行上述 pytest 覆盖率命令。通过后，`Run smoke test` 步骤执行 `python scripts/smoke_test.py`。断言失败、后端覆盖率低于 70% 或冒烟检查失败时，任务失败。
+此前的云端版本使用 Ubuntu runner；当前同一工作流已配置为使用带有 `self-hosted`、`Windows`、`X64` 标签的本机 runner。
+
+`Tests and coverage` 使用 Windows PowerShell，调用本机 `C:\Users\R32st\AppData\Local\Programs\Python\Python313\python.exe` 在 runner 检出目录创建 `.venv`、准备 pip、安装两份依赖清单，然后通过该虚拟环境运行相同的测试、70% 覆盖率检查和冒烟脚本。换机器时需调整基础 Python 路径。
+
+runner 安装于 `D:\Tools\actions-runner-lab5`，在此目录执行 `.\run.cmd` 后保持终端打开。任务使用其 `_work` 下的检出目录，与日常开发目录分开。完成实验取证后，在 runner 终端按 Ctrl+C 停止监听。
 
 推送后在仓库 Actions 页面打开对应提交的运行，进入 `Tests and coverage`，分别展开 `Run tests and coverage` 和 `Run smoke test` 查看结果。
