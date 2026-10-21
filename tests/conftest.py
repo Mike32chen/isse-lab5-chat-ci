@@ -9,6 +9,12 @@ import dotenv
 import pytest
 
 
+def pytest_configure(config):
+    # 全新检出没有 .pytest_cache；pytest 创建 basetemp 时不创建父目录。
+    if config.option.basetemp:
+        Path(config.option.basetemp).resolve().parent.mkdir(parents=True, exist_ok=True)
+
+
 @pytest.fixture
 def app_module(tmp_path, monkeypatch):
     # 必须在加载 app.py 前设置，应用会在模块初始化时读取数据。
