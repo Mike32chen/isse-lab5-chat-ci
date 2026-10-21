@@ -45,9 +45,20 @@ py -3.13 -m venv .venv
 
 `pytest.ini` 将测试临时目录设为 `.pytest_cache/tmp`，避开本机系统临时目录的权限问题。pytest 会在每次运行时清理这个专用目录；该目录仅保存测试生成的数据，并由 `.gitignore` 排除。
 
+## 冒烟检查
+
+`scripts/smoke_test.py` 复用课程骨架，入口为 `app:app`。脚本选择临时端口，启动 Flask 子进程，检查 `/` 返回 HTML、`/api/hello` 返回 `{"message":"你好"}`，最后停止服务。
+脚本通过 `LAB5_DATA_DIR` 使用临时数据目录，并禁用本地 dotenv 配置读取；两项请求不调用模型。
+
+```powershell
+.\.venv\Scripts\python.exe scripts/smoke_test.py
+```
+
+成功时依次输出服务就绪、两项 PASS、服务停止和冒烟检查通过。该检查验证进程启动与基础 HTTP 响应，不覆盖浏览器按钮交互。
+
 ## GitHub Actions
 
 `.github/workflows/ci.yml` 定义 `Chat CI` 工作流，在推送到 `main` 或向 `main` 发起 PR 时运行。
-`Tests and coverage` 任务使用 GitHub 的 Ubuntu runner，准备 Python 3.13，安装运行和测试依赖，再执行上述 pytest 覆盖率命令。断言失败或后端覆盖率低于 70% 时任务失败。
+`Tests and coverage` 任务使用 GitHub 的 Ubuntu runner，准备 Python 3.13，安装运行和测试依赖，再执行上述 pytest 覆盖率命令。通过后，`Run smoke test` 步骤执行 `python scripts/smoke_test.py`。断言失败、后端覆盖率低于 70% 或冒烟检查失败时，任务失败。
 
-推送后在仓库 Actions 页面打开对应提交的运行，进入 `Tests and coverage`，展开 `Run tests and coverage` 查看结果。
+推送后在仓库 Actions 页面打开对应提交的运行，进入 `Tests and coverage`，分别展开 `Run tests and coverage` 和 `Run smoke test` 查看结果。
