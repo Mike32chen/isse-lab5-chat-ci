@@ -25,3 +25,29 @@ py -3.13 -m venv .venv
 
 浏览器访问 http://localhost:5001/，按 Ctrl+C 停止服务。
 首页和连通性接口不需要真实 API Key；真实聊天调用由 `DEEPSEEK_API_KEY` 配置。Lab5 自动测试将模拟模型调用，不需要真实 Key。
+
+## 自动测试
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+`tests/test_chat_api.py` 检查单条聊天记录的创建、查询、修改、删除，以及空消息的拒绝处理。测试通过 Flask test client 发请求，并将 `get_ai_reply()` 替换为固定回复。
+
+`tests/test_conversations.py` 补充检查会话查询、重命名、删除，以及从 JSON 文件重新读取会话和消息。覆盖率统计整个后端模块 `app`：
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q --cov=app --cov-report=term-missing --cov-fail-under=70
+```
+
+每个测试加载一份独立应用，通过 `LAB5_DATA_DIR` 使用临时数据目录，不读取本地 `.env`。普通启动未设置该变量时，继续使用项目内的 `data/`。
+
+`pytest.ini` 将测试临时目录设为 `.pytest_cache/tmp`，避开本机系统临时目录的权限问题。pytest 会在每次运行时清理这个专用目录；该目录仅保存测试生成的数据，并由 `.gitignore` 排除。
+
+## GitHub Actions
+
+`.github/workflows/ci.yml` 定义 `Chat CI` 工作流，在推送到 `main` 或向 `main` 发起 PR 时运行。
+`Tests and coverage` 任务使用 GitHub 的 Ubuntu runner，准备 Python 3.13，安装运行和测试依赖，再执行上述 pytest 覆盖率命令。断言失败或后端覆盖率低于 70% 时任务失败。
+
+推送后在仓库 Actions 页面打开对应提交的运行，进入 `Tests and coverage`，展开 `Run tests and coverage` 查看结果。

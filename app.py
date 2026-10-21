@@ -30,7 +30,9 @@ load_dotenv(Path(__file__).resolve().with_name(".env"), encoding="utf-8-sig")
 app = Flask(__name__, static_folder="frontend", static_url_path="")
 app.json.ensure_ascii = False
 
-DATA_FILE = Path(__file__).resolve().parent / "data" / "conversations.json"
+# 测试和冒烟脚本可指定临时目录；普通启动仍使用项目的 data/。
+DATA_DIR = Path(os.environ.get("LAB5_DATA_DIR") or Path(__file__).resolve().parent / "data")
+DATA_FILE = DATA_DIR / "conversations.json"
 LEGACY_FILE = DATA_FILE.with_name("messages.json")
 MISSING_FILE = object()
 
