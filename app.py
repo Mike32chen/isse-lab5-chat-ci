@@ -350,7 +350,7 @@ def update_message(message_id, conversation_id=None):
 def delete_message(message_id, conversation_id=None):
     with data_lock:
         conversation, _ = find_record(message_id, conversation_id)
-        updated = list(conversation["messages"])
+        updated = [item for item in conversation["messages"] if item["id"] != message_id]
         store_conversation({**conversation, "messages": updated})
     return "", 204
 
